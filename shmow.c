@@ -71,6 +71,7 @@ static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static GC setcolor(const char* col);
 static void draw();
 static void togglepanel();
+static void resetpanel();
 
 /* Include configuration file (need struct key) */
 #include "config.h"
@@ -142,6 +143,12 @@ void togglepanel() {
     else {
         panel_pad = 0;
     }
+    tile();
+    update_current();
+    draw();
+}
+
+void resetpanel() {
     tile();
     update_current();
     draw();
@@ -387,8 +394,8 @@ void update_current() {
             XSetWindowBorder(dis,c->win,win_focus);
             XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
             XRaiseWindow(dis,c->win);
-            fprintf(stdout, "\tcurrent name: %s\n", c->name);
             draw();
+            fprintf(stdout, "\tcurrent name: %s\n", c->name);
         }
         else
             XSetWindowBorder(dis,c->win,win_unfocus);
@@ -447,6 +454,7 @@ void draw() {
     update_title(current);
 
     int count; Client *c;
+    for (c=head; c; c = c->next) update_title(c);
     for (count=0, c=head; c; c = c->next) if (c) count++;
 
     int pix_per_win = sw / count;

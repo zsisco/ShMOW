@@ -21,6 +21,7 @@ static struct key keys[] = {
     { MOD,             XK_Tab,    next_win,    {NULL}},
     { MOD|ShiftMask,   XK_Tab,    prev_win,    {NULL}},
     { MOD,             XK_b,      togglepanel, {NULL}},
+    { MOD,             XK_r,      resetpanel,  {NULL}},
     { MOD,             XK_p,      spawn,       {.com = dmenucmd}},
     { MOD,             XK_Return, spawn,       {.com = urxvtcmd}},
     { MOD|ControlMask, XK_t,      quit,        {NULL}}
