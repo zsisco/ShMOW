@@ -7,9 +7,10 @@
 // Colors
 #define FOCUS "rgb:88/88/ff"
 #define UNFOCUS "rgb:fd/f6/e3"
-#define TABBING "rgb:3c/b3/71"
+#define STATUS "rgb:3c/b3/71"
 
-#define PANEL 18
+#define PANEL -18
+#define FONTFACTOR 6
 
 const char* dmenucmd[] = {"dmenu_run",NULL};
 const char* urxvtcmd[] = {"urxvt",NULL};
@@ -21,7 +22,6 @@ static struct key keys[] = {
     { MOD,             XK_Tab,    next_win,    {NULL}},
     { MOD|ShiftMask,   XK_Tab,    prev_win,    {NULL}},
     { MOD,             XK_b,      togglepanel, {NULL}},
-    { MOD,             XK_r,      resetpanel,  {NULL}},
     { MOD,             XK_p,      spawn,       {.com = dmenucmd}},
     { MOD,             XK_Return, spawn,       {.com = urxvtcmd}},
     { MOD|ControlMask, XK_t,      quit,        {NULL}}

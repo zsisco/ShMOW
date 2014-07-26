@@ -49,6 +49,7 @@ static void add_window(Window w);
 /* static void change_desktop(const Arg arg); */
 static void configurerequest(XEvent *e);
 static void destroynotify(XEvent *e);
+static void propertynotify(XEvent *e);
 static void die(const char* e);
 static unsigned long getcolor(const char* color);
 static void grabkeys();
@@ -67,11 +68,11 @@ static void start();
 static void tile();
 static void update_current();
 static void update_title(Client *c);
+static void update_status(void);
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static GC setcolor(const char* col);
-static void draw();
+static void drawbar();
 static void togglepanel();
-static void resetpanel();
 
 /* Include configuration file (need struct key) */
 #include "config.h"
@@ -86,11 +87,13 @@ static int sw;
 static int screen;
 static unsigned int win_focus;
 static unsigned int win_unfocus;
+static unsigned int win_status;
 static Window root;
 static Client *head;
 static Client *current;
 static Atom NetWMName;
 static const char broken[] = "broken";
+static char status_text[256];
 /* draw bar stuff */
 static GC gc;
 static Colormap cmap;
@@ -103,6 +106,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [KeyPress] = keypress,
     [MapRequest] = maprequest,
     [DestroyNotify] = destroynotify,
+    [PropertyNotify] = propertynotify,
     [ConfigureRequest] = configurerequest
 };
 
@@ -145,13 +149,7 @@ void togglepanel() {
     }
     tile();
     update_current();
-    draw();
-}
-
-void resetpanel() {
-    tile();
-    update_current();
-    draw();
+    drawbar();
 }
 
 void maprequest(XEvent *e) {
@@ -169,7 +167,8 @@ void maprequest(XEvent *e) {
     XMapWindow(dis,ev->window);
     tile();
     update_current();
-    draw();
+    update_status();
+    drawbar();
 }
 
 void configurerequest(XEvent *e) {
@@ -183,6 +182,34 @@ void configurerequest(XEvent *e) {
     wc.sibling = ev->above;
     wc.stack_mode = ev->detail;
     XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
+}
+
+void propertynotify(XEvent *e) {
+    XPropertyEvent *ev = &e->xproperty;
+    Client *c, *tmp;
+
+    fprintf(stdout, "propertynotify: we're in.\n");
+    for(tmp=head; tmp; tmp=tmp->next) 
+        if(tmp->win == ev->window) 
+            c = tmp;
+
+    if((ev->window == root) && (ev->atom == XA_WM_NAME)) {
+        fprintf(stdout, "\troot XA_WM_NAME\n");
+        update_status();
+        drawbar();
+    }
+
+    else if(ev->state == PropertyDelete)
+        return; /*ignore*/
+
+    else if(c) {
+        if(ev->atom == XA_WM_NAME || ev->atom == NetWMName) {
+            fprintf(stdout, "\tclient name\n");
+            update_title(c);
+            drawbar();
+        }
+    }
+    fprintf(stdout, "propertynotify: we're out.\n");
 }
 
 void destroynotify(XEvent *e) {
@@ -394,7 +421,7 @@ void update_current() {
             XSetWindowBorder(dis,c->win,win_focus);
             XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
             XRaiseWindow(dis,c->win);
-            draw();
+            drawbar();
             fprintf(stdout, "\tcurrent name: %s\n", c->name);
         }
         else
@@ -417,6 +444,11 @@ void update_title(Client *c) {
 		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
 	if(c->name[0] == '\0') /* hack to mark broken Clients */
 		strcpy(c->name, broken);
+}
+
+void update_status(void) {
+    if(!gettextprop(root, XA_WM_NAME, status_text, sizeof(status_text)))
+        strcpy(status_text, "ShMOW");
 }
 
 Bool gettextprop(Window w, Atom atom, char *text, unsigned int size) {
@@ -449,7 +481,7 @@ GC setcolor(const char* col) {
 	return gc;
 }
 
-void draw() {
+void drawbar() {
 
     update_title(current);
 
@@ -457,20 +489,27 @@ void draw() {
     for (c=head; c; c = c->next) update_title(c);
     for (count=0, c=head; c; c = c->next) if (c) count++;
 
-    int pix_per_win = sw / count;
+    int statusw = strlen(status_text)*FONTFACTOR;
+    int barw = sw - statusw;
+    int pix_per_win = barw / count;
     int x_coord = 0;
     c = head;
 
 	Window win = XCreateSimpleWindow(dis, root, 0, panel_pad, sw, 15, 0, win_unfocus, win_unfocus);
 	XMapWindow(dis, win);
-    if (c == current) {
-	    XDrawRectangle(dis, win, setcolor(FOCUS), 0, panel_pad, sw, 14);
-	    XFillRectangle(dis, win, setcolor(FOCUS), 0, panel_pad, sw, 15);
+    /*if (c == current) {
+	    XDrawRectangle(dis, win, setcolor(FOCUS), 0, panel_pad, barw, 14);
+	    XFillRectangle(dis, win, setcolor(FOCUS), 0, panel_pad, barw, 15);
     }
-    else {
-	    XDrawRectangle(dis, win, setcolor(UNFOCUS), 0, panel_pad, sw, 14);
-	    XFillRectangle(dis, win, setcolor(UNFOCUS), 0, panel_pad, sw, 15);
-    }
+    else {*/
+	    XDrawRectangle(dis, win, setcolor(UNFOCUS), 0, panel_pad, barw, 14);
+	    XFillRectangle(dis, win, setcolor(UNFOCUS), 0, panel_pad, barw, 15);
+    //}
+
+	XDrawRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 14);
+	XFillRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 15);
+    fprintf(stdout, "status_text %s\n", status_text);
+    XDrawString(dis, win, setcolor(UNFOCUS), barw+1, 12, status_text, strlen(status_text));
 
     while (c) {
         
@@ -492,11 +531,13 @@ void draw() {
 	        XFillRectangle(dis,win,setcolor(UNFOCUS),x_coord,0,pix_per_win,16);
             XDrawString(dis,win,setcolor(FOCUS),x_coord,12,buf,strlen(buf));
         }
+    
         x_coord += pix_per_win;
+
         c=c->next;
     }
     
-	XFlush(dis);
+	XSync(dis, False);
 }
 
 void setup() {
@@ -527,11 +568,13 @@ void setup() {
     sw = XDisplayWidth(dis,screen);
     sh = XDisplayHeight(dis,screen);
 
+    strcpy(status_text, "ShMOW!!!\0");
     panel_pad = 0;
 
     /* Colors */
     win_focus = getcolor(FOCUS);
     win_unfocus = getcolor(UNFOCUS);
+    win_status = getcolor(STATUS);
 
     /* Shortcuts */
     grabkeys();
@@ -568,9 +611,9 @@ void setup() {
     XGCValues val;
     val.font = XLoadFont(dis,"fixed");
     gc = XCreateGC(dis,root,GCFont,&val);
-    
+
     /* To catch maprequest and destroynotify (if other wm running) */
-    XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
+    XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask|PropertyChangeMask);
 }
 
 void sigchld(int unused) {

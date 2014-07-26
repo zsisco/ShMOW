@@ -2,16 +2,14 @@ This folder contains the working version of ShMOW that runs on my netbook.
 
 To do:
 
-- Support for floating window exceptions.
-  - Mouse commands to move/resize for floaters.
+- Support for floating window exceptions. (Transient Window fields)
+  - Mouse move/resize for floaters.
 
-- Update window titles in tab bar automatically. 
-  - In start() look at while loop and maybe add a for loop to go through all clients and update their titles (not sure of the right function, draw()? update_current()? update_title(Client c*)?)
-
-- Integrate status bar a la dwm into window tab bar.
+- Create global Drawable as the master tab bar. Stop "refresh" flicker from drawbar().
 - Fix tab bar title sizing issues.
+  - Make focus tab larger, unfocused smaller.
+
 - Add keyboard command to hide tab bar completely. 
 - Add keyboard command to "reset" window tab bar when things go bad.
 
 - Add ability to start WM without having a terminal held open.
-
