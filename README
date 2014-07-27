@@ -1,12 +1,13 @@
 [ShMOW - ShMOW Manages Only Windows]
 
 About:
-ShMOW is a window manager written in C that is designed for use on a netbook (or any laptop with a small screen).
+ShMOW is a window manager written in C that is designed for use on a netbook (or any laptop with a small screen). The main idea is to have a window manager suitable for small screens (and slower machines) that minimizes clutter and maximizes precious screen real estate.
 The only window mode available is Monocle, where the focused window is full screen and all other windows are hidden. A bar on the top of the screen displays the titles of all open windows. A status panel is also incorporated into the bar which is set by "xsetroot -name $status" (similar to dwm). All configuration is done in the config.h file. 
 This repo contains the working version of ShMOW that runs on my netbook.
 
 Dependencies:
 - Xlib.
+- dmenu (optional).
 
 To do:
 - Support for floating window exceptions. (Transient Window fields)
@@ -15,6 +16,8 @@ To do:
 - Create global Drawable as the master tab bar. Stop "refresh" flicker from drawbar().
 
 - Virtual desktops (workspaces).
+
+- Include example status script.
 
 - Rename project -- something related to monocles or small screens...
 
