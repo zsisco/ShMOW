@@ -233,7 +233,7 @@ void destroynotify(XEvent *e) {
 }
 
 void die(const char* e) {
-    fprintf(stdout,"catwm: %s\n",e);
+    fprintf(stdout,"ShMOW: %s\n",e);
     exit(1);
 }
 
@@ -330,7 +330,7 @@ void quit() {
     if(bool_quit == 1) {
         XUngrabKey(dis, AnyKey, AnyModifier, root);
         XDestroySubwindows(dis, root);
-        fprintf(stdout, "catwm: Thanks for using!\n");
+        fprintf(stdout, "ShMOW: Thanks for using!\n");
         XCloseDisplay(dis);
         die("forced shutdown");
     }
@@ -349,7 +349,7 @@ void quit() {
     }
 
     XUngrabKey(dis,AnyKey,AnyModifier,root);
-    fprintf(stdout,"catwm: Thanks for using!\n");
+    fprintf(stdout,"ShMOW: Thanks for using!\n");
 }
 
 void remove_window(Window w) {
@@ -513,7 +513,7 @@ void drawbar() {
 	XDrawRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 14);
 	XFillRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 15);
     fprintf(stdout, "status_text %s\n", status_text);
-    XDrawString(dis, win, setcolor(UNFOCUS), barw+1, 12, status_text, strlen(status_text));
+    XDrawString(dis, win, setcolor(STATUSTXT), barw+1, 12, status_text, strlen(status_text));
 
     while (c) {
         

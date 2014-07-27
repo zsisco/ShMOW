@@ -7,7 +7,8 @@
 // Colors
 #define FOCUS "rgb:88/88/ff"
 #define UNFOCUS "rgb:fd/f6/e3"
-#define STATUS "rgb:3c/b3/71"
+#define STATUS "rgb:cd/85/3f"
+#define STATUSTXT "rgb:f9/f9/e9"
 
 #define PANEL -18
 #define FONTFACTOR 6

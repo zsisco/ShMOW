@@ -1,4 +1,12 @@
-This folder contains the working version of ShMOW that runs on my netbook.
+[ShMOW - ShMOW Manages Only Windows]
+
+About:
+ShMOW is a window manager written in C that is designed for use on a netbook (or any laptop with a small screen < 11").
+The only window mode available is Monocle, where the focused window is full screen and all other windows are hidden. A bar on the top of the screen displays the titles of all open windows. A status panel is also incorporated into the bar which is set by "xsetroot -name $status" (similar to dmw). All configuration is done in the config.h file. 
+This repo contains the working version of ShMOW that runs on my netbook.
+
+Dependencies:
+- Xlib.
 
 To do:
 
@@ -7,8 +15,18 @@ To do:
 
 - Create global Drawable as the master tab bar. Stop "refresh" flicker from drawbar().
 
-- Add keyboard command to "reset" window tab bar when things go bad.
-
 - Virtual desktops.
 
-- Add ability to start WM without having a terminal held open.
+- Rename project -- something related to monocles or small screens...
+
+
+Default keyboard commands:
+(MOD = Alt)
+ - MOD+ENTER        spawn terminal
+ - MOD+p            spawn dmenu
+ - MOD+TAB          next window
+ - MOD+SHIFT+TAB    prev window
+ - MOD+SHIFT+q      close window
+ - MOD+b            toggle bar
+ - MOD+CONTROL+t    quit ShMOW
+
