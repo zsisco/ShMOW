@@ -10,7 +10,8 @@
 #define STATUS "rgb:cd/85/3f"
 #define STATUSTXT "rgb:f9/f9/e9"
 
-#define PANEL -18
+// How much of the bar to hide (all of it). Do not change!
+#define PANEL -16
 #define FONTFACTOR 6
 
 const char* dmenucmd[] = {"dmenu_run",NULL};

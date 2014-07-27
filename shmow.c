@@ -189,13 +189,11 @@ void propertynotify(XEvent *e) {
     XPropertyEvent *ev = &e->xproperty;
     Client *c, *tmp;
 
-    fprintf(stdout, "propertynotify: we're in.\n");
     for(tmp=head; tmp; tmp=tmp->next) 
         if(tmp->win == ev->window) 
             c = tmp;
 
     if((ev->window == root) && (ev->atom == XA_WM_NAME)) {
-        fprintf(stdout, "\troot XA_WM_NAME\n");
         update_status();
         drawbar();
     }
@@ -205,12 +203,10 @@ void propertynotify(XEvent *e) {
 
     else if(c) {
         if(ev->atom == XA_WM_NAME || ev->atom == NetWMName) {
-            fprintf(stdout, "\tclient name\n");
             update_title(c);
             drawbar();
         }
     }
-    fprintf(stdout, "propertynotify: we're out.\n");
 }
 
 void destroynotify(XEvent *e) {
