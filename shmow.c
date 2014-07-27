@@ -5,6 +5,7 @@
 #include <X11/Xproto.h>
 /*#include <X11/extensions/Xinerama.h>*/
 #include <stdio.h>
+#include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -417,7 +418,7 @@ void update_current() {
     for(c=head;c;c=c->next)
         if(current == c) {
             /* "Enable" current window */
-            XSetWindowBorderWidth(dis,c->win,1);
+            XSetWindowBorderWidth(dis,c->win,0);
             XSetWindowBorder(dis,c->win,win_focus);
             XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
             XRaiseWindow(dis,c->win);
@@ -489,10 +490,13 @@ void drawbar() {
     for (c=head; c; c = c->next) update_title(c);
     for (count=0, c=head; c; c = c->next) if (c) count++;
 
-    int statusw = strlen(status_text)*FONTFACTOR;
+    int statusw = strlen(status_text) * FONTFACTOR;
     int barw = sw - statusw;
-    int pix_per_win = barw / count;
+    int pix_cur_win = (int)(round(barw / pow(count,0.75)));
+    int pix_unfocus_total = barw - pix_cur_win;
+    int pix_per_win = (count==1) ? pix_unfocus_total : pix_unfocus_total / (count - 1);
     int x_coord = 0;
+
     c = head;
 
 	Window win = XCreateSimpleWindow(dis, root, 0, panel_pad, sw, 15, 0, win_unfocus, win_unfocus);
@@ -514,25 +518,35 @@ void drawbar() {
     while (c) {
         
         char buf[(pix_per_win/10)+11];
+        char curbuf[(pix_cur_win/7)+11];
         char name[(pix_per_win/10)+1];
+        char curname[(pix_per_win/7)+1];
         strcpy(buf, " ");
+        strcpy(curbuf, " ");
         strcpy(name, " ");
+        strcpy(curname, " ");
 
-
-        memcpy(name, &c->name[0], pix_per_win/10);
-        name[(pix_per_win/10)] = '\0';
-        strcat(buf, name);
+        if (c == current) {
+            memcpy(curname, &c->name[0], pix_cur_win/7);
+            curname[(pix_cur_win/7)] = '\0';
+            strcat(curbuf, curname);
+        }
+        else {
+            memcpy(name, &c->name[0], pix_per_win/10);
+            name[(pix_per_win/10)] = '\0';
+            strcat(buf, name);
+        }
 
 	    if (c == current) {
-	        XFillRectangle(dis,win,setcolor(FOCUS),x_coord,0,pix_per_win,16);
-            XDrawString(dis,win,setcolor(UNFOCUS),x_coord,12,buf,strlen(buf));
+	        XFillRectangle(dis,win,setcolor(FOCUS),x_coord,0,pix_cur_win,16);
+            XDrawString(dis,win,setcolor(UNFOCUS),x_coord,12,curbuf,strlen(curbuf));
         }
         else {
 	        XFillRectangle(dis,win,setcolor(UNFOCUS),x_coord,0,pix_per_win,16);
             XDrawString(dis,win,setcolor(FOCUS),x_coord,12,buf,strlen(buf));
         }
     
-        x_coord += pix_per_win;
+        x_coord += (c == current) ? pix_cur_win : pix_per_win;
 
         c=c->next;
     }
