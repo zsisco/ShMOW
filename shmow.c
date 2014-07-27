@@ -47,7 +47,8 @@ struct Desktop {
 
 /* Functions */
 static void add_window(Window w);
-/* static void change_desktop(const Arg arg); */
+static void change_desktop(const Arg arg); 
+static void client_to_desktop(const Arg arg);
 static void configurerequest(XEvent *e);
 static void destroynotify(XEvent *e);
 static void propertynotify(XEvent *e);
@@ -57,10 +58,14 @@ static void grabkeys();
 static void keypress(XEvent *e);
 static void kill_client();
 static void maprequest(XEvent *e);
+static void next_desktop();
 static void next_win();
+static void prev_desktop();
 static void prev_win();
 static void quit();
 static void remove_window(Window w);
+static void save_desktop(int i);
+static void select_desktop(int i);
 static void send_kill_signal(Window w);
 static void setup();
 static void sigchld(int unused);
@@ -112,7 +117,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
 };
 
 /* Desktop array */
-static Desktop desktops[10];
+static Desktop desktops[3];
 
 void add_window(Window w) {
     Client *c,*t;
@@ -139,6 +144,89 @@ void add_window(Window w) {
     update_title(c);
     fprintf(stdout, "add win: %s\n", c->name);
     current = c;
+}
+
+void change_desktop(const Arg arg) {
+    Client *c;
+
+    if (arg.i == current_desktop)
+        return;
+
+    // Unmap all windows
+    if (head != NULL)
+        for(c=head; c; c=c->next)
+            XUnmapWindow(dis, c->win);
+
+    // Save current properties
+    save_desktop(current_desktop);
+
+    // Take "properties" from the new desktop
+    select_desktop(arg.i);
+
+    // Map all windows
+    if (head != NULL)
+        for(c=head; c; c=c->next)
+            XMapWindow(dis, c->win);
+
+    tile();
+    update_current();
+}
+
+void client_to_desktop(const Arg arg) {
+    Client *tmp = current;
+    int tmp2 = current_desktop;
+
+    if (arg.i == current_desktop || current == NULL)
+        return;
+
+    // Add client to desktop
+    select_desktop(arg.i);
+    add_window(tmp->win);
+    save_desktop(arg.i);
+
+    // Remove client from current desktop
+    select_desktop(tmp2);
+    remove_window(current->win);
+
+    tile();
+    update_current();
+}
+
+void save_desktop(int i) {
+    desktops[i].mode = mode;
+    desktops[i].head = head;
+    desktops[i].current = current;
+}
+
+void select_desktop(int i) {
+    head = desktops[i].head;
+    current = desktops[i].current;
+    mode = desktops[i].mode;
+    current_desktop = i;
+}
+
+void next_desktop() {
+    int tmp = current_desktop;
+
+    if (tmp == 3)
+        tmp = 1;
+    else
+        tmp += 1;
+
+    Arg a = {.i = tmp};
+    change_desktop(a);
+}
+
+void prev_desktop() {
+    int tmp = current_desktop;
+
+    if (tmp == 1)
+        tmp = 3;
+    else
+        tmp = tmp-1;
+
+    Arg a = {.i = tmp};
+    change_desktop(a);
 }
 
 void togglepanel() {
@@ -330,7 +418,7 @@ void quit() {
     if(bool_quit == 1) {
         XUngrabKey(dis, AnyKey, AnyModifier, root);
         XDestroySubwindows(dis, root);
-        fprintf(stdout, "catwm: Thanks for using!\n");
+        fprintf(stdout, "ShMOW!\n");
         XCloseDisplay(dis);
         die("forced shutdown");
     }
@@ -349,7 +437,7 @@ void quit() {
     }
 
     XUngrabKey(dis,AnyKey,AnyModifier,root);
-    fprintf(stdout,"catwm: Thanks for using!\n");
+    fprintf(stdout,"ShMOW!\n");
 }
 
 void remove_window(Window w) {
@@ -490,8 +578,11 @@ void drawbar() {
     for (c=head; c; c = c->next) update_title(c);
     for (count=0, c=head; c; c = c->next) if (c) count++;
 
+    char ch_desktop[6];
+    sprintf(ch_desktop," [%d]",current_desktop);
+    
     int statusw = strlen(status_text) * FONTFACTOR;
-    int barw = sw - statusw;
+    int barw = sw - statusw - strlen(ch_desktop)*FONTFACTOR;
     int pix_cur_win = (int)(round(barw / pow(count,0.75)));
     int pix_unfocus_total = barw - pix_cur_win;
     int pix_per_win = (count==1) ? pix_unfocus_total : pix_unfocus_total / (count - 1);
@@ -513,7 +604,11 @@ void drawbar() {
 	XDrawRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 14);
 	XFillRectangle(dis, win, setcolor(STATUS), barw, panel_pad, statusw, 15);
     fprintf(stdout, "status_text %s\n", status_text);
-    XDrawString(dis, win, setcolor(UNFOCUS), barw+1, 12, status_text, strlen(status_text));
+    XDrawString(dis, win, setcolor(UNFOCUS), barw, 12, status_text, strlen(status_text));
+
+	XDrawRectangle(dis, win, setcolor(STATUS), barw+statusw, panel_pad, strlen(ch_desktop)*FONTFACTOR, 14);
+	XFillRectangle(dis, win, setcolor(STATUS), barw+statusw, panel_pad, strlen(ch_desktop)*FONTFACTOR, 15);
+    XDrawString(dis, win, setcolor(UNFOCUS), barw+statusw, 12, ch_desktop, strlen(ch_desktop));
 
     while (c) {
         
@@ -617,7 +712,7 @@ void setup() {
     /* Select first dekstop by default */
     const Arg arg = {.i = 1};
     current_desktop = arg.i;
-    /* change_desktop(arg);  questionable?? */
+    change_desktop(arg);
 
 
     /* gc init */

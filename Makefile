@@ -1,5 +1,5 @@
 CFLAGS+= -Wall
-LDADD+= -lX11 -lm
+LDADD+= -lX11 -lm 
 LDFLAGS=
 EXEC=shmow
 
