@@ -6,10 +6,9 @@ To do:
   - Mouse move/resize for floaters.
 
 - Create global Drawable as the master tab bar. Stop "refresh" flicker from drawbar().
-- Fix tab bar title sizing issues.
-  - Make focus tab larger, unfocused smaller.
 
-- Add keyboard command to hide tab bar completely. 
 - Add keyboard command to "reset" window tab bar when things go bad.
+
+- Virtual desktops.
 
 - Add ability to start WM without having a terminal held open.
