@@ -5,10 +5,10 @@
 #define MOD Mod1Mask
 
 // Colors
-#define FOCUS "rgb:88/88/ff"
-#define UNFOCUS "rgb:fd/f6/e3"
-#define STATUS "rgb:cd/85/3f"
-#define STATUSTXT "rgb:f9/f9/e9"
+#define FOCUS "rgb:1c/1c/1c"
+#define UNFOCUS "rgb:9a/cc/79"
+#define STATUS "rgb:1c/1c/1c"
+#define STATUSTXT "rgb:ff/59/95"
 
 // How much of the bar to hide (all of it). Do not change!
 #define PANEL -16
